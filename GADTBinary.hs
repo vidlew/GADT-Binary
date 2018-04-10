@@ -97,7 +97,7 @@ toBinOrd o (SI m) = (if odd o then G else D) $ toBinOrd ((o-1)`div`2) m
 toBinOrd o (SO m) = (if even o then L else R) $ toBinOrd (o`div`2) m
 toBinOrd _ _ = error "First argument must be strictly smaller than second"
 
-fromBinOrd :: (BinOrd n) -> Integer
+fromBinOrd :: (Num a) => (BinOrd n) -> a
 fromBinOrd C = 0
 fromBinOrd (G m) = 1+2*(fromBinOrd m)
 fromBinOrd (D m) = 2+2*(fromBinOrd m)
@@ -124,9 +124,10 @@ instance (GetSingleton (BinOrd (I n)) (SBin (I n)), Finite (SBin (I n)), Num (Bi
 ; fromInteger n = (if odd n then G else D) $ fromInteger $ (n-1)`div`2
 ; m+C = m
 ; C+n = n
-; m+n = fromInteger $ ((fromBinOrd m)+(fromBinOrd n))`mod`(elems $ getSingleton m)
-; m*C = C
 
+; m+n = fromInteger $ ((fromBinOrd m)+(fromBinOrd n))`mod`(elems $ getSingleton m)
+
+; m*C = C
 ; C*n = C
 ; m*n = fromInteger $ ((fromBinOrd m)*(fromBinOrd n))`mod`(elems $ getSingleton m)
 ; abs = id
@@ -137,9 +138,17 @@ instance (GetSingleton (BinOrd (I n)) (SBin (I n)), Finite (SBin (I n)), Num (Bi
 
 instance (GetSingleton (BinOrd (O n)) (SBin (O n)), Finite (SBin (O n)), Num (BinOrd n)) => Num (BinOrd (O n)) where{
   fromInteger n = (if even n then L else R) $ fromInteger $ n`div`2
-; m+n = fromInteger $ ((fromBinOrd m)+(fromBinOrd n))`mod`(elems $ getSingleton m)
+; (L m)+(L n) = L $ m+n
+; (L m)+(R n) = R $ m+n
+; (R m)+(L n) = R $ m+n
+; (R m)+(R n) = L $ m+n+1
+--; m+n = fromInteger $ ((fromBinOrd m)+(fromBinOrd n))`mod`(elems $ getSingleton m)
 
-; m*n = fromInteger $ ((fromBinOrd m)*(fromBinOrd n))`mod`(elems $ getSingleton m)
+; (L m)*(L n) = L $ (m*n)+(m*n)
+; (L m)*(R n) = (L m) + (L $ (m*n)+(m*n))
+; (R m)*(L n) = (L n) + (L $ (m*n)+(m*n))
+; (R m)*(R n) = (L m) + (L n) + (R $ (m*n)+(m*n))
+--; m*n = fromInteger $ ((fromBinOrd m)*(fromBinOrd n))`mod`(elems $ getSingleton m)
 ; abs = id
 ; signum (L m) = if signum m == 0 then 0 else 1
 ; signum m = 1
