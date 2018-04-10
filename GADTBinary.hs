@@ -46,6 +46,7 @@ data SBin n where
     SO :: (SBin m) -> (SBin (O m))
     SI :: (SBin m) -> (SBin (I m))
 deriving instance Show (SBin n)
+deriving instance Eq (SBin n)
 
 instance Num Bin where{
   B+n = n
@@ -116,7 +117,7 @@ instance Finite (SBin B) where elems = \_ -> 0
 instance (Finite (SBin n)) => Finite (SBin (O n)) where elems (SO m) = 2*(elems m)
 instance (Finite (SBin n)) => Finite (SBin (I n)) where elems (SI m) = 1+2*(elems m)
 
---Ring with n elements
+--Ring Z/nZ
 instance Num (BinOrd B)
 
 instance (GetSingleton (BinOrd (I n)) (SBin (I n)), Finite (SBin (I n)), Num (BinOrd n)) => Num (BinOrd (I n)) where{
@@ -124,9 +125,7 @@ instance (GetSingleton (BinOrd (I n)) (SBin (I n)), Finite (SBin (I n)), Num (Bi
 ; fromInteger n = (if odd n then G else D) $ fromInteger $ (n-1)`div`2
 ; m+C = m
 ; C+n = n
-
 ; m+n = fromInteger $ ((fromBinOrd m)+(fromBinOrd n))`mod`(elems $ getSingleton m)
-
 ; m*C = C
 ; C*n = C
 ; m*n = fromInteger $ ((fromBinOrd m)*(fromBinOrd n))`mod`(elems $ getSingleton m)
