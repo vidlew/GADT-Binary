@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds, TypeFamilies, TypeOperators, UndecidableInstances, GADTs, StandaloneDeriving, FlexibleInstances, MultiParamTypeClasses, FunctionalDependencies #-}
+{-# LANGUAGE DataKinds, TypeFamilies, TypeOperators, UndecidableInstances, GADTs, StandaloneDeriving, FlexibleInstances, MultiParamTypeClasses, FunctionalDependencies, FlexibleContexts #-}
 
 module GADTBinary where
 
@@ -122,8 +122,9 @@ instance Num (BinOrd B)
 
 instance (GetSingleton (BinOrd (I n)) (SBin (I n)), Finite (SBin (I n)),
             Num (BinOrd n)) => Num (BinOrd (I n)) where{
-  fromInteger 0 = C
-; fromInteger n = (if odd n then G else D) $ fromInteger $ (n-1)`div`2
+fromInteger n = n`toBinOrd`(getSingleton undefined)
+--  fromInteger 0 = C
+--; fromInteger n = (\x -> if (elems $ getSingleton x) == 1 then C else x) $ (if odd n then G else D) $ fromInteger $ (n-1)`div`2
 ; m+C = m
 ; C+n = n
 ; m+n = fromInteger $ ((fromBinOrd m)+(fromBinOrd n))`mod`(elems $ getSingleton m)
@@ -132,7 +133,8 @@ instance (GetSingleton (BinOrd (I n)) (SBin (I n)), Finite (SBin (I n)),
 ; m*n = fromInteger $ ((fromBinOrd m)*(fromBinOrd n))`mod`(elems $ getSingleton m)
 ; abs = id
 ; signum C = C
-; signum m = 1
+; signum _ = 1
+; negate C = C
 ; negate m = fromInteger $ (elems $ getSingleton m) - (fromBinOrd m)
 }
 
@@ -144,7 +146,6 @@ instance (--GetSingleton (BinOrd (O n)) (SBin (O n)), Finite (SBin (O n)),
 ; (R m)+(L n) = R $ m+n
 ; (R m)+(R n) = L $ m+n+1
 --; m+n = fromInteger $ ((fromBinOrd m)+(fromBinOrd n))`mod`(elems $ getSingleton m)
-
 ; (L m)*(L n) = L $ (m*n)+(m*n)
 ; (L m)*(R n) = (L m) + (L $ (m*n)+(m*n))
 ; (R m)*(L n) = (L n) + (L $ (m*n)+(m*n))
@@ -152,8 +153,18 @@ instance (--GetSingleton (BinOrd (O n)) (SBin (O n)), Finite (SBin (O n)),
 --; m*n = fromInteger $ ((fromBinOrd m)*(fromBinOrd n))`mod`(elems $ getSingleton m)
 ; abs = id
 ; signum (L m) = if signum m == 0 then 0 else 1
-; signum m = 1
+; signum _ = 1
 ; negate (L m) = L $ negate m
 ; negate (R m) = R $ negate $ m+1
 --; negate m = fromInteger $ (elems $ getSingleton m) - (fromBinOrd m)
 }
+
+testPlus :: (Num (BinOrd n), Finite (SBin n)) => (SBin n) -> Bool
+testPlus m = foldr (&&) True $ do a <- [0..(elems m)-1]
+                                  b <- [0..(elems m)-1]
+                                  return $ (fromBinOrd $ (toBinOrd a m)+(fromInteger b)) == (a+b)`mod`(elems m)
+
+testTimes :: (Num (BinOrd n), Finite (SBin n)) => (SBin n) -> Bool
+testTimes m = foldr (&&) True $ do a <- [0..(elems m)-1]
+                                   b <- [0..(elems m)-1]
+                                   return $ (fromBinOrd $ (toBinOrd a m)*(fromInteger b)) == (a*b)`mod`(elems m)
