@@ -120,7 +120,8 @@ instance (Finite (SBin n)) => Finite (SBin (I n)) where elems (SI m) = 1+2*(elem
 --Ring Z/nZ
 instance Num (BinOrd B)
 
-instance (GetSingleton (BinOrd (I n)) (SBin (I n)), Finite (SBin (I n)), Num (BinOrd n)) => Num (BinOrd (I n)) where{
+instance (GetSingleton (BinOrd (I n)) (SBin (I n)), Finite (SBin (I n)),
+            Num (BinOrd n)) => Num (BinOrd (I n)) where{
   fromInteger 0 = C
 ; fromInteger n = (if odd n then G else D) $ fromInteger $ (n-1)`div`2
 ; m+C = m
@@ -135,7 +136,8 @@ instance (GetSingleton (BinOrd (I n)) (SBin (I n)), Finite (SBin (I n)), Num (Bi
 ; negate m = fromInteger $ (elems $ getSingleton m) - (fromBinOrd m)
 }
 
-instance (GetSingleton (BinOrd (O n)) (SBin (O n)), Finite (SBin (O n)), Num (BinOrd n)) => Num (BinOrd (O n)) where{
+instance (--GetSingleton (BinOrd (O n)) (SBin (O n)), Finite (SBin (O n)),
+            Num (BinOrd n)) => Num (BinOrd (O n)) where{
   fromInteger n = (if even n then L else R) $ fromInteger $ n`div`2
 ; (L m)+(L n) = L $ m+n
 ; (L m)+(R n) = R $ m+n
@@ -151,5 +153,7 @@ instance (GetSingleton (BinOrd (O n)) (SBin (O n)), Finite (SBin (O n)), Num (Bi
 ; abs = id
 ; signum (L m) = if signum m == 0 then 0 else 1
 ; signum m = 1
-; negate m = fromInteger $ (elems $ getSingleton m) - (fromBinOrd m)
+; negate (L m) = L $ negate m
+; negate (R m) = R $ negate $ m+1
+--; negate m = fromInteger $ (elems $ getSingleton m) - (fromBinOrd m)
 }
