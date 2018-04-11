@@ -6,8 +6,8 @@ module GADTBinary where
 data Nat = Z | S Nat
 
 data Ordinal n where
-  Init :: Ordinal (S n)
-  Next :: (Ordinal n) -> (Ordinal (S n))
+  Zero :: Ordinal (S n)
+  Succ :: (Ordinal n) -> (Ordinal (S n))
 deriving instance Show (Ordinal n)
 
 data SNat n where
@@ -15,10 +15,32 @@ data SNat n where
   SS :: (SNat n) -> SNat (S n)
 
 toOrdinal :: Int -> (SNat n) -> Ordinal n
-toOrdinal 0 (SS n) = Init
-toOrdinal m (SS (SS n)) = Next $ toOrdinal (m-1) $ SS n
+toOrdinal 0 (SS n) = Zero
+toOrdinal m (SS (SS n)) = Succ $ toOrdinal (m-1) $ SS n
 toOrdinal _ _ = error "First argument must be strictly smaller than second"
 
+fromOrdinal :: (Ordinal n) -> Int
+fromOrdinal Zero = 0
+fromOrdinal (Succ m) = 1 + fromOrdinal m 
+
+instance GetSingleton (Ordinal Z) (SNat Z) where getSingleton = \_ -> SZ
+instance GetSingleton (Ordinal m) (SNat m) => GetSingleton (Ordinal (S m)) (SNat (S m))  where getSingleton = \_ -> SS $ getSingleton undefined
+
+instance Finite (SNat Z) where elems = \_ -> 0
+instance Finite (SNat m) => Finite (SNat (S m)) where elems (SS n) = 1 + elems n
+
+instance Num (Ordinal Z)
+
+instance (Num (Ordinal m), GetSingleton (Ordinal m) (SNat m), Finite (SNat m)) => Num (Ordinal (S m)) where{
+  fromInteger 0 = Zero
+; fromInteger m = Succ $ fromInteger $ m-1
+; m+Zero = m
+; Zero+n = n
+; m+n = toOrdinal ((fromOrdinal m + fromOrdinal n)`mod`(fromInteger $ elems $ getSingleton m)) $ getSingleton undefined
+; Zero*_ = Zero
+; _*Zero = Zero
+; m*n = toOrdinal ((fromOrdinal m * fromOrdinal n)`mod`(fromInteger $ elems $ getSingleton m)) $ getSingleton undefined
+}
 
 data Bin = B | O Bin | I Bin
 
@@ -108,8 +130,8 @@ fromBinOrd (R m) = 1+2*(fromBinOrd m)
 
 class GetSingleton a b | a -> b, b -> a where getSingleton :: a -> b
 instance GetSingleton (BinOrd B) (SBin B) where getSingleton = \_ -> SB
-instance (GetSingleton (BinOrd n) (SBin n)) => GetSingleton (BinOrd (I n)) (SBin (I n)) where getSingleton _ = SI $ getSingleton (undefined :: BinOrd n)
-instance (GetSingleton (BinOrd n) (SBin n)) => GetSingleton (BinOrd (O n)) (SBin (O n)) where getSingleton _ = SO $ getSingleton (undefined :: BinOrd n)
+instance (GetSingleton (BinOrd n) (SBin n)) => GetSingleton (BinOrd (I n)) (SBin (I n)) where getSingleton _ = SI $ getSingleton undefined
+instance (GetSingleton (BinOrd n) (SBin n)) => GetSingleton (BinOrd (O n)) (SBin (O n)) where getSingleton _ = SO $ getSingleton undefined
 
 
 class Finite a where elems :: a -> Integer
@@ -128,8 +150,8 @@ fromInteger n = n`toBinOrd`(getSingleton undefined)
 ; m+C = m
 ; C+n = n
 ; m+n = fromInteger $ ((fromBinOrd m)+(fromBinOrd n))`mod`(elems $ getSingleton m)
-; m*C = C
-; C*n = C
+; _*C = C
+; C*_ = C
 ; m*n = fromInteger $ ((fromBinOrd m)*(fromBinOrd n))`mod`(elems $ getSingleton m)
 ; abs = id
 ; signum C = C
