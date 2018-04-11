@@ -145,9 +145,9 @@ instance Num (BinOrd B)
 
 instance (GetSingleton (BinOrd (I n)) (SBin (I n)), Finite (SBin (I n)),
             Num (BinOrd n)) => Num (BinOrd (I n)) where{
-fromInteger n = n`toBinOrd`(getSingleton undefined)
---  fromInteger 0 = C
---; fromInteger n = (\x -> if (elems $ getSingleton x) == 1 then C else x) $ (if odd n then G else D) $ fromInteger $ (n-1)`div`2
+--  fromInteger n = n`toBinOrd`(getSingleton undefined)
+  fromInteger 0 = C
+; fromInteger n = (\x -> if (elems $ getSingleton x) == 1 then C else x) $ (if odd n then G else D) $ fromInteger $ (n-1)`div`2
 ; m+C = m
 ; C+n = n
 ; m+n = fromInteger $ ((fromBinOrd m)+(fromBinOrd n))`mod`(elems $ getSingleton m)
@@ -161,7 +161,7 @@ fromInteger n = n`toBinOrd`(getSingleton undefined)
 ; negate m = fromInteger $ (elems $ getSingleton m) - (fromBinOrd m)
 }
 
-instance (--GetSingleton (BinOrd (O n)) (SBin (O n)), Finite (SBin (O n)),
+instance (GetSingleton (BinOrd (O n)) (SBin (O n)), Finite (SBin (O n)),
             Num (BinOrd n)) => Num (BinOrd (O n)) where{
   fromInteger n = (if even n then L else R) $ fromInteger $ n`div`2
 ; (L m)+(L n) = L $ m+n
@@ -172,7 +172,7 @@ instance (--GetSingleton (BinOrd (O n)) (SBin (O n)), Finite (SBin (O n)),
 ; (L m)*(L n) = L $ (m*n)+(m*n)
 ; (L m)*(R n) = (L m) + (L $ (m*n)+(m*n))
 ; (R m)*(L n) = (L n) + (L $ (m*n)+(m*n))
-; (R m)*(R n) = (L m) + (L n) + (R $ (m*n)+(m*n))
+; (R m)*(R n) = (L $ m+n) + (R $ (m*n)+(m*n))
 --; m*n = fromInteger $ ((fromBinOrd m)*(fromBinOrd n))`mod`(elems $ getSingleton m)
 ; abs = id
 ; signum (L m) = if signum m == 0 then 0 else 1
