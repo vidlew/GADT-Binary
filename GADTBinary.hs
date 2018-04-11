@@ -40,6 +40,7 @@ instance (Num (Ordinal m), GetSingleton (Ordinal m) (SNat m), Finite (SNat m)) =
 ; Zero*_ = Zero
 ; _*Zero = Zero
 ; m*n = toOrdinal ((fromOrdinal m * fromOrdinal n)`mod`(fromInteger $ elems $ getSingleton m)) $ getSingleton undefined
+; negate m = toOrdinal ((fromInteger $ elems $ getSingleton m)-(fromOrdinal m)) $ getSingleton m
 }
 
 data Bin = B | O Bin | I Bin
