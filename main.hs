@@ -3,7 +3,8 @@ module Main where
 import GADTBinary
 import System.Random
 
-m = SO $ SI $ SO $ SI $ SI $ SI SB
+--Print the numbers from 0 to m-1
+m = SO $ SO $ SI $ SO $ SI $ SI $ SI SB
 
 main :: IO ()
 --main = do n <- getStdRandom (randomR (0,(elems m)-1))
